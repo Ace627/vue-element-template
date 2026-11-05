@@ -1,0 +1,16 @@
+/* 全主题样式 */
+html {
+  /** 主题切换圆形扩散动效 */
+  --el-theme-transition-duration: 400ms;
+  --el-theme-transition-easing: ease-out;
+}
+
+/* 浅色主题样式 */
+html:not(.dark) {
+  --el-bg-color-page: #ededed;
+}
+
+/* 深色主题样式 */
+html.dark {
+  --el-bg-color-page: #111111;
+}
