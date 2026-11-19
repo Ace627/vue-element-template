@@ -46,25 +46,38 @@ export default defineConfig(({ mode }) => {
     build: {
       // 指定打包文件的输出目录
       outDir: runtimeConfig.VITE_OUTPUT_DIR ?? 'dist',
+      /** 图片转 base64 编码的阈值。为防止过多的 http 请求，Vite 会将小于此阈值的图片转为 base64 格式 */
+      assetsInlineLimit: 1024,
+      /** 规定触发警告的 chunk 大小。（以 kbs 为单位） */
       chunkSizeWarningLimit: 1024,
-
+      /** 启用/禁用 CSS 代码拆分 */
+      cssCodeSplit: true,
+      /** 构建后是否生成 source map 文件 */
+      sourcemap: false,
+      /** 是否在构建阶段将 publicDir 目录中的所有文件复制到 outDir 目录中 */
+      copyPublicDir: true,
       rolldownOptions: {
         checks: {
-          // 关闭构建耗时诊断输出（PLUGIN_TIMINGS），仅影响日志提示不影响实际构建
+          // 关闭构建耗时诊断输出（PLUGIN_TIMINGS），仅影响日志提示不影响实际构建（禁用插件计时器检查，以提高构建性能）
           bundlerTimings: false,
         },
         output: {
-          // 按依赖来源手动拆包，避免 ECharts 等大依赖挤进同一个超过 500 kB 的 chunk
-          manualChunks(id: string) {
-            if (!id.includes('node_modules')) return
-            const path = id.replace(/\\/g, '/')
-            if (path.includes('/zrender/')) return 'zrender'
-            if (path.includes('/lib/chart/') || path.includes('/charts.js')) return 'echarts-charts'
-            if (path.includes('/lib/component/') || path.includes('/components.js')) return 'echarts-components'
-            if (path.includes('/echarts/')) return 'echarts-core'
-            if (path.includes('element-plus') || path.includes('@element-plus')) return 'element-plus'
-            if (path.includes('@vue') || path.includes('pinia') || path.includes('vue-router') || path.includes('/vue/')) return 'vue-vendor'
-            return 'vendor'
+          // 按依赖来源拆包，避免 ECharts 等大依赖挤进同一个超过 500 kB 的 chunk
+          codeSplitting: {
+            groups: [
+              // zrender 是 echarts 的渲染引擎，priority 必须高于 echarts，否则会被 echarts-core 一并收走
+              { name: 'zrender', test: /node_modules[\\/]zrender[\\/]/, priority: 30 },
+              // echarts 为按需引入，图表与组件分别成块，避免单个 chunk 过大
+              { name: 'echarts-charts', test: /node_modules[\\/]echarts[\\/](lib[\\/]chart[\\/]|charts\.js)/, priority: 29 },
+              { name: 'echarts-components', test: /node_modules[\\/]echarts[\\/](lib[\\/]component[\\/]|components\.js)/, priority: 28 },
+              { name: 'echarts-core', test: /node_modules[\\/]echarts[\\/]/, priority: 27 },
+              { name: 'element-plus', test: /node_modules[\\/](@element-plus[\\/]|element-plus[\\/])/, priority: 26 },
+              { name: 'vue', test: /node_modules[\\/](vue|@vue)[\\/]/, priority: 25 },
+              { name: 'pinia', test: /node_modules[\\/]pinia[\\/]/, priority: 24 },
+              { name: 'vue-router', test: /node_modules[\\/]vue-router[\\/]/, priority: 23 },
+              { name: 'axios', test: /node_modules[\\/]axios[\\/]/, priority: 22 },
+              { name: 'dayjs', test: /node_modules[\\/]dayjs[\\/]/, priority: 21 },
+            ],
           },
           minify: {
             compress: {

@@ -4,6 +4,7 @@ import { setupStore } from '@/store'
 import { setupRouter } from '@/router'
 import { setupPlugins } from '@/plugins'
 import '@/styles/index.scss'
+import 'virtual:svg-icons-register'
 
 async function bootstrap() {
   // 创建 Vue 应用实例
