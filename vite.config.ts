@@ -46,8 +46,26 @@ export default defineConfig(({ mode }) => {
     build: {
       // 指定打包文件的输出目录
       outDir: runtimeConfig.VITE_OUTPUT_DIR ?? 'dist',
+      chunkSizeWarningLimit: 1024,
+
       rolldownOptions: {
+        checks: {
+          // 关闭构建耗时诊断输出（PLUGIN_TIMINGS），仅影响日志提示不影响实际构建
+          bundlerTimings: false,
+        },
         output: {
+          // 按依赖来源手动拆包，避免 ECharts 等大依赖挤进同一个超过 500 kB 的 chunk
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return
+            const path = id.replace(/\\/g, '/')
+            if (path.includes('/zrender/')) return 'zrender'
+            if (path.includes('/lib/chart/') || path.includes('/charts.js')) return 'echarts-charts'
+            if (path.includes('/lib/component/') || path.includes('/components.js')) return 'echarts-components'
+            if (path.includes('/echarts/')) return 'echarts-core'
+            if (path.includes('element-plus') || path.includes('@element-plus')) return 'element-plus'
+            if (path.includes('@vue') || path.includes('pinia') || path.includes('vue-router') || path.includes('/vue/')) return 'vue-vendor'
+            return 'vendor'
+          },
           minify: {
             compress: {
               // 是否移除 console 语句（环境变量不为 'false' 时启用，默认启用）

@@ -3,6 +3,14 @@
 
 // primary.base 保持与 apps\admin\src\settings.ts 中的 primaryColor 一致
 @forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': #0077ff,
+    ),
+    'success': (
+      'base': #1ba784,
+    ),
+  ),
   $card: (
     'padding': 16px,
   )

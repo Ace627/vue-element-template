@@ -1,5 +1,5 @@
 /* 全主题样式 */
-html {
+html:root {
   /** 主题切换圆形扩散动效 */
   --el-theme-transition-duration: 400ms;
   --el-theme-transition-easing: ease-out;
